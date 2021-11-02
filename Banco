@@ -1,0 +1,1665 @@
+#include "stdio.h"
+#include "locale.h"
+#include "stdlib.h"
+#include <string.h>
+#include <locale.h>
+#include "time.h"
+
+#ifdef _WIN32
+
+#include <Windows.h>
+
+#endif
+
+FILE *contro;
+FILE *fp;
+FILE *fcont;
+FILE *fcontrol;
+FILE *transf;
+FILE *transc;
+
+
+struct cliente{
+
+    char nome[100];
+    char codigo[20];
+    char cpf[20];
+    char telefone[20];
+    char endereco[200];
+
+};
+
+struct conta{
+
+    char agenc[20];
+    char ncont[20];
+    int clt;
+    float saldo;
+
+};
+
+
+
+struct tran{
+
+    int tipo;
+    float valor;
+    int dia;
+    int refconta;
+    char desc[100];
+
+};
+
+int cadastro(struct cliente *dados);
+int listar();
+int buscar();
+int att();
+int contr();
+int dcontr();
+int excluir();
+int montar();
+
+int controle = 0;
+int controlc = 0;
+int controlf = 0;
+struct cliente clientes[100];
+struct conta contas[200];
+struct tran oper[1000]; 
+
+
+int main(){
+
+    fp = fopen("Banco.txt", "a+");
+    contro = fopen("controle.txt", "a+");
+    fcont = fopen("Conta.txt", "a+");
+    fcontrol = fopen("Ccontrol.txt", "a+");
+    transf = fopen("transf.txt", "a+");
+    transc = fopen("Ctransc.txt", "a+");
+
+    fscanf(transc, "%d", &controlf);
+    fscanf(contro, "%d", &controle);
+    fscanf(fcontrol, "%d", &controlc);
+    montar();
+    montarcont();
+    montartrans();
+    system("cls||clear");
+
+    #ifdef _WIN32
+
+    system("chcp 1252 > nul");
+    SetConsoleCP(1252);
+
+    #endif
+    setlocale(LC_ALL,"portuguese");
+
+    if (fp == NULL){
+        printf("ERRO! O arquivo não foi aberto!\n");
+        return 0;
+    }
+    else{
+   }
+
+	int i;
+    int a = 1;
+
+    while(a){
+        int bo = 1;
+        char opt;
+        printf("=============== Bem vindo! =================\n");
+        printf("Digite um comando para prosseguir:\n");
+        printf("C - Gerenciar Clientes.\n");
+        printf("T - Gerenciar Contas.\n");
+        printf("S - Sair.\n");
+        opt = getchar();
+        getchar();
+        system("cls||clear");
+        switch (opt){
+
+            case 'c':
+            case 'C':
+                while(bo==1){
+                    setbuf(stdin, NULL);
+                    printf("============ Gerenciar Clientes ============\n");
+                    printf("Digite um comando para prosseguir:\n");
+                    printf("C - Cadastrar um cliente.\n");
+                    printf("L - Listar todos os clientes cadastrados.\n");
+                    printf("B - Buscar cliente já cadastrado.\n");
+                    printf("A - Atualizar um cliente cadastrado.\n");
+                    printf("E - Excluir um cliente cadastrado.\n");
+                    printf("S - Sair.\n");
+                    opt = getchar();
+                    getchar();
+                    system("cls||clear");
+                    switch(opt){
+                        
+                        case 'c':
+                        case 'C':
+                            i = 1;
+                            while(i == 1){
+                                system("cls||clear");
+                                cadastro(&(clientes[controle]));
+                                printf("Deseja realizar outro cadastro?\nDigite 1 para Sim e 0 para Não:\n");
+                                int xv;
+                                while ((xv = getchar()) != '\n' && xv != EOF) { 
+                                    if(xv == '1'){
+                                        i = 1;
+                                    }
+                                    else{
+                                        i = 0;
+                                    }
+                                }
+                                system("cls||clear");
+                                
+                            }
+                            continue;
+
+                        case 'l':     
+                        case 'L':
+
+							listar();
+							printf("Pressione ENTER para continuar. . .\n");
+                            getchar();
+                            system("cls||clear");
+                            continue;
+                        case 'b':
+                        case 'B':
+
+                            buscar();
+                            system("cls||clear");
+                            continue;
+                        
+                        case 'a':
+                        case 'A':
+
+                            att();
+                            system("cls||clear");
+                            continue;
+                        
+                        case 'e':
+                        case 'E':
+                            excluir();
+                            system("cls||clear");
+                            continue;
+                        
+                        case 's':
+                        case 'S':
+                            bo = 0;
+                            break;
+
+                        default:
+                            break;
+                    }
+
+                }
+                break;
+
+            case 't':
+            case 'T':
+                while(bo==1){
+                    printf("============ Gerenciar Contas ============\n");
+                    printf("Digite um comando para prosseguir:\n");
+                    printf("R - Listagem de todas as contas cadastradas.\n");
+                    printf("C - Cadastrar uma conta para um cliente.\n");
+                    printf("L - Listar todas as contas de um cliente.\n");
+                    printf("W - Realizar um saque em uma conta.\n");
+                    printf("D - Realizar um depósito em uma conta.\n");
+                    printf("T - Realizar transferência entre contas.\n");
+                    printf("E - Exibir extrato de uma conta.\n");
+                    printf("S - Sair.\n");
+                    opt = getchar();
+                    setbuf(stdin, NULL);
+                    system("cls||clear");
+                    switch(opt){
+                        
+                        case 'r':
+                        case 'R':
+                            listarc();
+                            printf("Pressione ENTER para continuar. . .\n");
+                            getchar();
+                            system("cls||clear");
+                            continue;
+
+                        case 'c':
+                        case 'C':
+                            i = 1;
+                            while(i == 1){
+                                system("cls||clear");
+                                contcad();
+                                printf("Deseja realizar outro cadastro?\nDigite 1 para Sim e 0 para Não:\n");
+                                int xv;
+                                while ((xv = getchar()) != '\n' && xv != EOF) { 
+                                    if(xv == '1'){
+                                        i = 1;
+                                    }
+                                    else{
+                                        i = 0;
+                                    }
+                                }
+                                system("cls||clear");
+                                
+                            }
+                            continue;
+
+                        case 'l':
+                        case 'L':
+                            i = 1;
+                            while(i == 1){
+                                system("cls||clear");
+                                listari();
+                                printf("Deseja listar as contas de outro cliente?\nDigite 1 para Sim e 0 para Não:\n");
+                                int xv;
+                                while ((xv = getchar()) != '\n' && xv != EOF) { 
+                                    if(xv == '1'){
+                                        i = 1;
+                                    }
+                                    else{
+                                        i = 0;
+                                    }
+                                }
+                                system("cls||clear");
+                                
+                            }
+                            continue;
+                        
+                        case 'w':
+                        case 'W':
+
+                            i = 1;
+                            while(i == 1){
+                                system("cls||clear");
+                                sacar();
+                                printf("Deseja sacar novamente?\nDigite 1 para Sim e 0 para Não:\n");
+                                int xv;
+                                while ((xv = getchar()) != '\n' && xv != EOF) { 
+                                    if(xv == '1'){
+                                        i = 1;
+                                    }
+                                    else{
+                                        i = 0;
+                                    }
+                                }
+                                system("cls||clear");
+                                
+                            }
+                            continue;
+
+                        case 'd':
+                        case 'D':
+
+                            i = 1;
+                            while(i == 1){
+                                system("cls||clear");
+                                depositar();
+                                printf("Deseja depositar novamente?\nDigite 1 para Sim e 0 para Não:\n");
+                                int xv;
+                                while ((xv = getchar()) != '\n' && xv != EOF) { 
+                                    if(xv == '1'){
+                                        i = 1;
+                                    }
+                                    else{
+                                        i = 0;
+                                    }
+                                }
+                                system("cls||clear");
+                                
+                            }
+                            continue;
+
+                        case 't':
+                        case 'T':
+
+                            i = 1;
+                            while(i == 1){
+                                system("cls||clear");
+                                tranferencia();
+                                printf("Deseja transferir novamente?\nDigite 1 para Sim e 0 para Não:\n");
+                                int xv;
+                                while ((xv = getchar()) != '\n' && xv != EOF) { 
+                                    if(xv == '1'){
+                                        i = 1;
+                                    }
+                                    else{
+                                        i = 0;
+                                    }
+                                }
+                                system("cls||clear");
+                                
+                            }
+                            continue;
+
+                        case 'e':
+                        case 'E':
+
+                            i = 1;
+                            while(i == 1){
+                                system("cls||clear");
+                                extrato();
+                                printf("Deseja imprimir o extrato novamente?\nDigite 1 para Sim e 0 para Não:\n");
+                                int xv;
+                                while ((xv = getchar()) != '\n' && xv != EOF) { 
+                                    if(xv == '1'){
+                                        i = 1;
+                                    }
+                                    else{
+                                        i = 0;
+                                    }
+                                }
+                                system("cls||clear");
+                                
+                            }
+                            continue;
+                        
+                        case 's':
+                        case 'S':
+                            bo = 0;
+                            break;
+
+                    }
+                }
+                break;
+
+            case 's':
+            case 'S':
+                a = 0;
+                break;
+
+            default:
+                break;
+        }
+    }
+
+}
+
+int cadastro(struct cliente *dados){
+    int bo = 1;
+    while(bo==1){
+        printf("Insira o nome:\n");
+        fgets((dados->nome), 99, stdin);
+        dados->nome[strcspn(dados->nome, "\n")] = '\0';
+
+        printf("Insira o código:\n");
+        fgets((dados->codigo), 19, stdin);
+        dados->codigo[strcspn(dados->codigo, "\n")] = '\0';
+        for(int i = 0; i < controle; i++){
+
+            if((strcmp(dados->codigo, clientes[i].codigo) == 0) || (strcmp(dados->codigo, "") == 0)){
+
+                printf("\nCliente já cadastrado!\n");
+                return 0;
+
+            }
+
+        }
+
+        printf("Insira o CPF/CNPJ:\n");
+        fgets((dados->cpf), 19, stdin);
+        dados->cpf[strcspn(dados->cpf, "\n")] = '\0';
+        for(int i = 0; i < controle; i++){
+
+            if((strcmp(dados->cpf, clientes[i].cpf) == 0) || (strcmp(dados->cpf, "") == 0)){
+                printf("\nCliente já cadastrado!\n");
+                return 0;
+                
+
+            }
+
+        }
+
+        printf("Insira o telefone:\n");
+        fgets((dados->telefone), 19, stdin);
+        dados->telefone[strcspn(dados->telefone, "\n")] = '\0';
+
+        printf("Insira o endereco:\n");
+        fgets((dados->endereco), 199, stdin);
+        dados->endereco[strcspn(dados->endereco, "\n")] = '\0';
+        bo = 0;
+
+    }
+    fprintf(fp, "%s\n", clientes[controle].nome);
+    fprintf(fp, "%s\n", clientes[controle].codigo);
+    fprintf(fp, "%s\n", clientes[controle].cpf);
+    fprintf(fp, "%s\n", clientes[controle].telefone);
+    fprintf(fp, "%s\n", clientes[controle].endereco);
+    contr();
+    return 0;
+}
+
+int listar(){
+    system("cls||clear");
+
+    for (int i = 0; i<controle; i++){
+        printf("Cliente %d =================\n", i);
+        printf("Nome     -  %s\n", clientes[i].nome);
+        printf("Código   -  %s\n", clientes[i].codigo);
+        printf("CPF/CNPJ -  %s\n", clientes[i].cpf);
+        printf("Telefone -  %s\n", clientes[i].telefone);
+        printf("Endereço -  %s\n\n", clientes[i].endereco);
+
+    }
+
+    return 0;
+
+}
+
+
+int buscar(){
+    int bo = 1;
+    while(bo==1){
+        int cont = 0;
+        int posi[300];
+        char string[100];
+        printf("============ Buscar cliente ============\n");
+        printf("Insira nome, código ou CPF/CNPJ:\n");
+        fgets((string), 99, stdin);
+        string[strcspn(string, "\n")] = '\0';
+        for(int i = 0; i < 100; i++){
+
+            if(strcmp(string, clientes[i].nome) == 0){
+
+                posi[cont] = i;
+                cont++;
+
+            }
+            else if(strcmp(string, clientes[i].codigo) == 0){
+
+                posi[cont] = i;
+                cont++;
+
+            }
+            else if(strcmp(string, clientes[i].cpf) == 0){
+
+                posi[cont] = i;
+                cont++;
+
+            }
+
+        }
+        if(cont<1){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+        }
+        else if(cont<2){
+            printf("Foi encontrado %d resultado:\n", cont);
+        }else{
+            printf("Foram encontrados %d resultados:\n", cont);
+        }
+        for (int i = 0; i<cont; i++){
+            printf("Cliente %d =================\n", posi[i]+1);
+            printf("Nome      -  %s\n", clientes[posi[i]].nome);
+            printf("Código    -  %s\n", clientes[posi[i]].codigo);
+            printf("CPF/CNPJ  -  %s\n", clientes[posi[i]].cpf);
+            printf("Telefone  -  %s\n", clientes[posi[i]].telefone);
+            printf("Endereço  -  %s\n\n", clientes[posi[i]].endereco);
+
+        }
+
+        printf("Deseja Realizar outra busca?\nDigite 1 para Sim e 0 para Não:\n");
+        scanf(" %d", &bo);
+        getchar();
+        system("cls||clear");
+    }
+    return 0;
+}
+
+int att(){
+    int bo = 1;
+    while(bo==1){
+        int cont = 0;
+        int posi[300];
+        char string[100];
+        printf("============ Atualizar cliente ============\n");
+        printf("Insira código ou CPF/CNPJ:\n");
+        fgets((string), 99, stdin);
+        string[strcspn(string, "\n")] = '\0';
+        if(strcmp(string, "") == 0){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+
+        }
+        for(int i = 0; i < 100; i++){
+
+            if(strcmp(string, clientes[i].codigo) == 0){
+
+                posi[cont] = i;
+                cont++;
+
+            }
+            else if(strcmp(string, clientes[i].cpf) == 0){
+
+                posi[cont] = i;
+                cont++;
+
+            }
+
+        }
+
+        if(cont<1){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            system("cls||clear");
+            return 0;
+        }
+        else if(cont<2){
+            printf("Foi encontrado %d resultado:\n", cont);
+        }else{
+            printf("Foram encontrados %d resultados:\n", cont);
+        }
+        for (int i = 0; i<cont; i++){
+            printf("Usuário %d =================\n", posi[i]);
+            printf("Nome      -  %s\n", clientes[posi[i]].nome);
+            printf("Código    -  %s\n", clientes[posi[i]].codigo);
+            printf("CPF/CNPJ  -  %s\n", clientes[posi[i]].cpf);
+            printf("Telefone  -  %s\n", clientes[posi[i]].telefone);
+            printf("Endereço  -  %s\n\n", clientes[posi[i]].endereco);
+
+        }
+
+        printf("Deseja Atualizar o cliente?\nDigite 1 para Sim e 0 para Não:\n");
+        scanf(" %d", &bo);
+        getchar();
+        if(bo==1){
+            char string0[100];
+            char string1[20];
+            char string2[20];
+            char string3[20];
+            char string4[199];    
+            printf("%d", controle);
+            printf("Insira o nome:\n");
+            fgets((string0), 99, stdin);
+            string0[strcspn(string0, "\n")] = '\0';
+    
+            printf("Insira o código:\n");
+            fgets((string1), 19, stdin);
+            string1[strcspn(string1, "\n")] = '\0';
+            for(int i = 0; i < controle; i++){
+
+                if((strcmp(string1, clientes[i].codigo) == 0 && i!=posi[0])){
+                
+                    printf("Usúario já cadastrado!\n");
+                    printf("Pressione ENTER para continuar. . .\n");
+                    getchar();
+                    system("cls||clear");
+                    return 0;
+
+                }
+
+            }
+            
+            printf("Insira o CPF/CNPJ:\n");
+            fgets((string2), 19, stdin);
+            string2[strcspn(string2, "\n")] = '\0';
+            for(int i = 0; i < controle; i++){
+
+                if((strcmp(string2, clientes[i].codigo) == 0 && i!=posi[0])){
+                
+                    printf("Usúario já cadastrado!\n");
+                    printf("Pressione ENTER para continuar. . .\n");
+                    getchar();
+                    system("cls||clear");
+                    return 0;
+
+                }
+
+            }
+
+        
+            printf("Insira o telefone:\n");
+            fgets((string3), 19, stdin);
+            string3[strcspn(string3, "\n")] = '\0';
+
+    
+            printf("Insira o endereco:\n");
+            fgets(string4, 199, stdin);
+            string4[strcspn(string4, "\n")] = '\0';
+
+            strcpy(clientes[posi[0]].nome, string0);
+            strcpy(clientes[posi[0]].codigo, string1);
+            strcpy(clientes[posi[0]].cpf, string2);
+            strcpy(clientes[posi[0]].telefone, string3);
+            strcpy(clientes[posi[0]].endereco, string4);
+
+            fp = fopen("Banco.txt", "w+");
+            for(int i = 0; i < controle; i++){
+                fprintf(fp, "%s\n", clientes[i].nome);
+                fprintf(fp, "%s\n", clientes[i].codigo);
+                fprintf(fp, "%s\n", clientes[i].cpf);
+                fprintf(fp, "%s\n", clientes[i].telefone);
+                fprintf(fp, "%s\n", clientes[i].endereco);
+            }
+            return 0;
+
+        }
+        system("cls||clear");
+    }
+    return 0;
+}
+
+int contr(){
+    controle++;
+    contro = fopen("controle.txt", "w+");
+    fprintf(contro, "%d", controle);
+    return 0;
+}
+
+int dcontr(){
+    controle--;
+    contro = fopen("controle.txt", "w+");
+    fprintf(contro, "%d", controle);
+    return 0;
+    
+}
+
+int excluir(){
+
+    int bo = 1;
+    while(bo==1){
+        int cont = 0;
+        int posi[300];
+        char string[100];
+        printf("============ Excluir cliente ============\n");
+        printf("Insira código ou CPF/CNPJ:\n");
+        fgets((string), 99, stdin);
+        string[strcspn(string, "\n")] = '\0';
+        if(strcmp(string, "") == 0){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+
+        }
+        for(int i = 0; i < 100; i++){
+
+            if(strcmp(string, clientes[i].codigo) == 0){
+
+                posi[cont] = i;
+                cont++;
+
+            }
+            else if(strcmp(string, clientes[i].cpf) == 0){
+
+                posi[cont] = i;
+                cont++;
+
+            }
+
+        }
+
+        if(cont<1){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            system("cls||clear");
+            return 0;
+        }
+        else if(cont<2){
+            printf("Foi encontrado %d resultado:\n", cont);
+        }else{
+            printf("Foram encontrados %d resultados:\n", cont);
+        }
+        for (int i = 0; i<cont; i++){
+            printf("Usuário %d =================\n", posi[i]);
+            printf("Nome      -  %s\n", clientes[posi[i]].nome);
+            printf("Código    -  %s\n", clientes[posi[i]].codigo);
+            printf("CPF/CNPJ  -  %s\n", clientes[posi[i]].cpf);
+            printf("Telefone  -  %s\n", clientes[posi[i]].telefone);
+            printf("Endereço  -  %s\n\n", clientes[posi[i]].endereco);
+
+        }
+
+        printf("Deseja Excluir o cliente?\nDigite 1 para Sim e 0 para Não:\n");
+        scanf(" %d", &bo);
+        getchar();
+        if(bo==1){
+            int y = 0;
+            for(int i = posi[0]; i < controle; i++){
+
+                clientes[posi[0]+y] = clientes[posi[0]+y+1];
+                y++;
+
+            }
+
+            fp = fopen("Banco.txt", "w+");
+            for(int i = 0; i < controle; i++){
+                fprintf(fp, "%s\n", clientes[i].nome);
+                fprintf(fp, "%s\n", clientes[i].codigo);
+                fprintf(fp, "%s\n", clientes[i].cpf);
+                fprintf(fp, "%s\n", clientes[i].telefone);
+                fprintf(fp, "%s\n", clientes[i].endereco);
+            }
+            dcontr();
+            printf("Cliente excluído com sucesso!\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            getchar();
+            bo = 0;
+        }
+    }
+    return 0;
+}
+
+int montar(){
+    fp = fopen("Banco.txt", "a+");
+    char string[200];
+    int cont = 0;
+    int i = 0;
+
+    while(fgets(string, 199, fp) != NULL){
+               
+        if(cont == 0){
+            string[strcspn(string, "\n")] = '\0';
+            strcpy(clientes[i].nome, string);                                    
+    
+        }
+        if(cont == 1){
+            string[strcspn(string, "\n")] = '\0';
+            strcpy(clientes[i].codigo, string);
+
+        }
+        if(cont == 2){
+            string[strcspn(string, "\n")] = '\0';
+            strcpy(clientes[i].cpf, string);
+
+        }
+        if(cont == 3){
+            string[strcspn(string, "\n")] = '\0';
+            strcpy(clientes[i].telefone, string);
+
+        }
+        if(cont == 4){
+            string[strcspn(string, "\n")] = '\0';
+            strcpy(clientes[i].endereco, string);
+            cont = -1;
+            i++;
+
+        }
+        cont++;
+    
+
+    }
+    return 0;
+    
+}
+
+int contcad(){
+    system("cls||clear");
+    int bo = 1;
+    while(bo==1){
+        int cont = 0;
+        int posi[300];
+        char string[100];
+        printf("============ Cadastrar conta ============\n");
+        printf("Insira código ou CPF/CNPJ:\n");
+        fgets((string), 99, stdin);
+        string[strcspn(string, "\n")] = '\0';
+        if(strcmp(string, "") == 0){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+
+        }
+        for(int i = 0; i < 100; i++){
+
+            if(strcmp(string, clientes[i].codigo) == 0){
+
+                posi[cont] = i;
+                cont++;
+
+            }
+            else if(strcmp(string, clientes[i].cpf) == 0){
+
+                posi[cont] = i;
+                cont++;
+
+            }
+
+        }
+
+        if(cont<1){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+        }
+        else if(cont<2){
+            printf("Foi encontrado %d resultado:\n", cont);
+        }else{
+            printf("Foram encontrados %d resultados:\n", cont);
+        }
+        for (int i = 0; i<cont; i++){
+            printf("Usuário %d =================\n", posi[i]);
+            printf("Nome      -  %s\n", clientes[posi[i]].nome);
+            printf("Código    -  %s\n", clientes[posi[i]].codigo);
+            printf("CPF/CNPJ  -  %s\n", clientes[posi[i]].cpf);
+            printf("Telefone  -  %s\n", clientes[posi[i]].telefone);
+            printf("Endereço  -  %s\n\n", clientes[posi[i]].endereco);
+
+        }
+
+        printf("Deseja Cadastrar uma conta para o cliente?\nDigite 1 para Sim e 0 para Não:\n");
+        scanf(" %d", &bo);
+        getchar();
+        if(bo==1){
+            char string0[100];
+            char string1[20];
+
+            printf("Insira a agência:\n");
+            fgets((string0), 19, stdin);
+            string0[strcspn(string0, "\n")] = '\0';
+    
+            printf("Insira o número da conta:\n");
+            fgets((string1), 19, stdin);
+            string1[strcspn(string1, "\n")] = '\0';
+            for(int i = 0; i < controlc; i++){
+
+                if(strcmp(string0, contas[i].agenc) == 0 && strcmp(string1, contas[i].ncont) == 0){
+                
+                    printf("Usúario já cadastrado!\n");
+                    printf("Pressione ENTER para continuar. . .\n");
+                    getchar();
+                    return 0;
+
+                }
+
+            }
+
+            strcpy(contas[controlc].agenc, string0);
+            strcpy(contas[controlc].ncont, string1);
+            contas[controlc].clt = posi[0];
+            contas[controlc].saldo = 0;
+
+            fcont = fopen("Conta.txt", "a+");
+            fprintf(fcont, "%s\n", contas[controlc].agenc);
+            fprintf(fcont, "%s\n", contas[controlc].ncont);
+            fprintf(fcont, "%d\n", contas[controlc].clt);
+            fprintf(fcont, "%f\n", contas[controlc].saldo);
+            contacont();
+            return 0;
+
+        }
+    }
+    return 0;
+}
+
+int contacont(){
+    controlc++;
+    fcontrol = fopen("Ccontrol.txt", "w+");
+    fprintf(fcontrol, "%d", controlc);
+    return 0;
+}
+
+int dcontacont(){
+    controlc--;
+    fcontrol = fopen("Ccontrol.txt", "w+");
+    fprintf(fcontrol, "%d", controlc);
+    return 0;
+    
+}
+
+int atran(){
+    controlf++;
+    transc = fopen("Ctransc.txt", "w+");
+    fprintf(transc, "%d", controlf);
+    return 0;
+    
+}
+
+int dtran(){
+    controlf--;
+    transc = fopen("Ctransc.txt", "w+");
+    fprintf(transc, "%d", controlf);
+    return 0;
+    
+}
+
+int montarcont(){
+    fcont = fopen("Conta.txt", "a+");
+    char string[200];
+    int cont = 0;
+    int i = 0;
+
+    while(fgets(string, 199, fcont) != NULL){
+               
+        if(cont == 0){
+            string[strcspn(string, "\n")] = '\0';
+            strcpy(contas[i].agenc, string);                                    
+    
+        }
+        if(cont == 1){
+            string[strcspn(string, "\n")] = '\0';
+            strcpy(contas[i].ncont, string); 
+
+        }
+        if(cont == 2){
+            string[strcspn(string, "\n")] = '\0';
+            contas[i].clt = atoi(string); 
+
+        }
+        if(cont == 3){
+            string[strcspn(string, "\n")] = '\0';
+            contas[i].saldo = atof(string); 
+            cont = -1;
+            i++;
+
+        }
+        cont++;
+    
+
+    }
+    return 0;
+    
+}
+
+int listarc(){
+    system("cls||clear");
+    printf("============ Listar todas as contas ============\n\n");
+    for (int i = 0; i<controle; i++){
+        int marc = 0;
+        for(int x = 0; x < controlc; x++){
+
+            if(i == contas[x].clt && marc == 0){
+                printf("Cliente %d =================\n", i);
+                printf("Nome     -  %s\n", clientes[contas[x].clt].nome);
+                printf("Código   -  %s\n", clientes[contas[x].clt].codigo);
+                printf("CPF/CNPJ -  %s\n", clientes[contas[x].clt].cpf);
+                printf("Telefone -  %s\n", clientes[contas[x].clt].telefone);
+                printf("Endereço -  %s\n\n", clientes[contas[x].clt].endereco);
+                marc = 1;
+            }
+            if(i == contas[x].clt){
+                printf("Agência  -  %s\n", contas[x].agenc);
+                printf("Ncont    -  %s\n", contas[x].ncont);
+                printf("Saldo    -  %.2f\n\n", contas[x].saldo);
+            }
+        }
+    }
+}
+
+int listari(){
+    system("cls||clear");
+    int bo = 1;
+    while(bo==1){
+        int cont = 0;
+        int posi[300];
+        char string[100];
+        printf("============ Listar Conta ============\n");
+        printf("Insira código ou CPF/CNPJ:\n");
+        fgets((string), 99, stdin);
+        string[strcspn(string, "\n")] = '\0';
+        if(strcmp(string, "") == 0){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+
+        }
+        for(int i = 0; i < 100; i++){
+
+            if(strcmp(string, clientes[i].codigo) == 0){
+
+                posi[cont] = i;
+                cont++;
+
+            }
+            else if(strcmp(string, clientes[i].cpf) == 0){
+
+                posi[cont] = i;
+                cont++;
+
+            }
+
+        }
+
+        if(cont<1){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            system("cls||clear");
+            return 0;
+        }
+        else if(cont<2){
+            printf("Foi encontrado %d resultado:\n", cont);
+        }else{
+            printf("Foram encontrados %d resultados:\n", cont);
+        }
+        for (int i = 0; i<cont; i++){
+            printf("Usuário %d =================\n", posi[i]);
+            printf("Nome      -  %s\n", clientes[posi[i]].nome);
+            printf("Código    -  %s\n", clientes[posi[i]].codigo);
+            printf("CPF/CNPJ  -  %s\n", clientes[posi[i]].cpf);
+            printf("Telefone  -  %s\n", clientes[posi[i]].telefone);
+            printf("Endereço  -  %s\n\n", clientes[posi[i]].endereco);
+
+        }    
+        for(int x = 0; x < controlc; x++){
+
+            if(posi[0] == contas[x].clt){
+                printf("Agência  -  %s\n", contas[x].agenc);
+                printf("Ncont    -  %s\n", contas[x].ncont);
+                printf("Saldo    -  %.2f\n\n", contas[x].saldo);
+            }
+        }
+        bo = 0;
+    }
+    return 0;
+}
+
+int sacar(){
+    system("cls||clear");
+    int bo = 1;
+    while(bo==1){
+        int cont = 0;
+        int posi[10];
+        char string[100];
+        char string1[100];
+        printf("============ Realizar Saque ============\n");
+        printf("Insira a Agência:\n");
+        fgets((string), 99, stdin);
+        string[strcspn(string, "\n")] = '\0';
+        printf("Insira o número da conta:\n");
+        fgets((string1), 99, stdin);
+        string1[strcspn(string1, "\n")] = '\0';
+        if(strcmp(string, "") == 0){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+
+        }
+        if(strcmp(string1, "") == 0){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+
+        }
+        for(int i = 0; i < 200; i++){
+
+            if((strcmp(string, contas[i].agenc) == 0) && (strcmp(string1, contas[i].ncont) == 0)){
+
+                posi[cont] = i;
+                cont++;
+
+            }
+        }
+
+        if(cont<1){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+        }
+
+        else if(cont<2){
+            printf("Foi encontrado %d resultado:\n", cont);
+            printf("Usuário %d =================\n", contas[posi[0]].clt);
+            printf("Nome      -  %s\n", clientes[contas[posi[0]].clt].nome);
+            printf("Código    -  %s\n", clientes[contas[posi[0]].clt].codigo);
+            printf("CPF/CNPJ  -  %s\n", clientes[contas[posi[0]].clt].cpf);
+            printf("Telefone  -  %s\n", clientes[contas[posi[0]].clt].telefone);
+            printf("Endereço  -  %s\n\n", clientes[contas[posi[0]].clt].endereco);
+            printf("Agência   -  %s\n", contas[posi[0]].agenc);
+            printf("Conta N   -  %s\n", contas[posi[0]].ncont);
+            printf("Saldo     -  %.2f\n\n", contas[posi[0]].saldo);
+        }
+
+        printf("Informe o valor que deseja sacar:\n");
+        float valors = 0;
+        scanf(" %f", &valors);
+        getchar();
+        if(valors > contas[posi[0]].saldo){
+
+            printf("O Valor informado é maior que o saldo da conta\n");
+            return 0;
+
+        }
+        else if(valors <= 0){
+
+            printf("O Valor informado é inválido!\n");
+            return 0;
+
+        }
+        else{
+            struct tm *data;
+            time_t sec;
+            time(&sec);
+            data = localtime(&sec);
+
+            oper[controlf].tipo = 0;
+            oper[controlf].valor = valors;
+            oper[controlf].dia = data->tm_yday;
+            oper[controlf].refconta = contas[posi[0]].clt;
+            printf("Insira a descrição da operação:\n");
+            char string2[100];
+            fgets((string2), 99, stdin);
+            string2[strcspn(string2, "\n")] = '\0';
+            strcpy(oper[controlf].desc, string2);
+
+
+            contas[posi[0]].saldo = contas[posi[0]].saldo-valors;
+            printf("Novo Saldo - %.2f\n", contas[posi[0]].saldo);
+            int notas[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+            int nnot[8] = {200, 100, 50, 20, 10, 5, 2, 1};
+            while(valors>=1){
+                
+                if(valors>=200){
+
+                    notas[0]++;
+                    valors = valors - 200;
+
+                }
+                else if(valors>=100){
+                    notas[1]++;
+                    valors = valors - 100;
+
+                }
+                else if(valors>=50){
+                    notas[2]++;
+                    valors = valors - 50;
+
+                }
+                else if(valors>=20){
+                    notas[3]++;
+                    valors = valors - 20;
+
+                }
+                else if(valors>=10){
+
+                    notas[4]++;
+                    valors = valors - 10;
+
+                }
+                else if(valors>=5){
+
+                    notas[5]++;
+                    valors = valors - 5;
+
+                }
+                else if(valors>=2){
+
+                    notas[6]++;
+                    valors = valors - 2;
+
+                }
+                else if(valors>=1){
+
+                    notas[7]++;
+                    valors = valors - 1;
+
+                }
+
+            }
+
+            for(int i = 0; i < 8; i++){
+
+                if(notas[i]>0){
+
+                    printf("%d notas de %d,00\n", notas[i], nnot[i]);
+
+                }
+
+            }
+
+            fcont = fopen("Conta.txt", "w+");
+            for(int i = 0; i < controlc; i++){
+                fprintf(fcont, "%s\n", contas[i].agenc);
+                fprintf(fcont, "%s\n", contas[i].ncont);
+                fprintf(fcont, "%d\n", contas[i].clt);
+                fprintf(fcont, "%f\n", contas[i].saldo);
+            }
+            transf = fopen("transf.txt", "a+");
+            fprintf(transf, "%d\n", oper[controlf].tipo);
+            fprintf(transf, "%f\n", oper[controlf].valor);
+            fprintf(transf, "%d\n", oper[controlf].dia);
+            fprintf(transf, "%d\n", oper[controlf].refconta);
+            fprintf(transf, "%s\n", oper[controlf].desc);
+            atran();
+            return 0;
+
+        }
+
+    }
+    return 0;
+}
+
+int depositar(){
+    system("cls||clear");
+    int bo = 1;
+    while(bo==1){
+        int cont = 0;
+        int posi[10];
+        char string[100];
+        char string1[100];
+        printf("============ Realizar Depósito ============\n");
+        printf("Insira a Agência:\n");
+        fgets((string), 99, stdin);
+        string[strcspn(string, "\n")] = '\0';
+        printf("Insira o número da conta:\n");
+        fgets((string1), 99, stdin);
+        string1[strcspn(string1, "\n")] = '\0';
+        if(strcmp(string, "") == 0){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+
+        }
+        if(strcmp(string1, "") == 0){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+
+        }
+        for(int i = 0; i < 200; i++){
+
+            if((strcmp(string, contas[i].agenc) == 0) && (strcmp(string1, contas[i].ncont) == 0)){
+
+                posi[cont] = i;
+                cont++;
+
+            }
+        }
+
+        if(cont<1){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+        }
+
+        else if(cont<2){
+            printf("Foi encontrado %d resultado:\n", cont);
+            printf("Usuário %d =================\n", contas[posi[0]].clt);
+            printf("Nome      -  %s\n", clientes[contas[posi[0]].clt].nome);
+            printf("Código    -  %s\n", clientes[contas[posi[0]].clt].codigo);
+            printf("CPF/CNPJ  -  %s\n", clientes[contas[posi[0]].clt].cpf);
+            printf("Telefone  -  %s\n", clientes[contas[posi[0]].clt].telefone);
+            printf("Endereço  -  %s\n\n", clientes[contas[posi[0]].clt].endereco);
+            printf("Agência   -  %s\n", contas[posi[0]].agenc);
+            printf("Conta N   -  %s\n", contas[posi[0]].ncont);
+            printf("Saldo     -  %.2f\n\n", contas[posi[0]].saldo);
+        }
+
+        printf("Informe o valor que deseja Depositar:\n");
+        float valors = 0;
+        scanf(" %f", &valors);
+        getchar();
+        if(valors <= 0){
+
+            printf("O Valor informado é invalido!\n");
+            return 0;
+
+        }
+        else{
+            struct tm *data;
+            time_t sec;
+            time(&sec);
+            data = localtime(&sec);
+
+            oper[controlf].tipo = 1;
+            oper[controlf].valor = valors;
+            oper[controlf].dia = data->tm_yday;
+            oper[controlf].refconta = contas[posi[0]].clt;
+            printf("Insira a descrição da operação:\n");
+            char string2[100];
+            fgets((string2), 99, stdin);
+            string2[strcspn(string2, "\n")] = '\0';
+            strcpy(oper[controlf].desc, string2);
+
+
+            contas[posi[0]].saldo = contas[posi[0]].saldo + valors;
+            printf("Novo Saldo - %.2f\n", contas[posi[0]].saldo);
+
+            fcont = fopen("Conta.txt", "w+");
+            for(int i = 0; i < controlc; i++){
+                fprintf(fcont, "%s\n", contas[i].agenc);
+                fprintf(fcont, "%s\n", contas[i].ncont);
+                fprintf(fcont, "%d\n", contas[i].clt);
+                fprintf(fcont, "%f\n", contas[i].saldo);
+            }
+            transf = fopen("transf.txt", "a+");
+            fprintf(transf, "%d\n", oper[controlf].tipo);
+            fprintf(transf, "%f\n", oper[controlf].valor);
+            fprintf(transf, "%d\n", oper[controlf].dia);
+            fprintf(transf, "%d\n", oper[controlf].refconta);
+            fprintf(transf, "%s\n", oper[controlf].desc);
+            atran();
+            return 0;
+
+        }
+
+    }
+    return 0;
+}
+
+int tranferencia(){
+    system("cls||clear");
+    int bo = 1;
+    while(bo==1){
+        int cont = 0;
+        int posi[10];
+        char string[100];
+        char string1[100];
+        printf("============ Transferência ============\n");
+        printf("============ Origem\n");
+        printf("Insira a Agência :\n");
+        fgets((string), 99, stdin);
+        string[strcspn(string, "\n")] = '\0';
+        printf("Insira o número da conta:\n");
+        fgets((string1), 99, stdin);
+        string1[strcspn(string1, "\n")] = '\0';
+        if(strcmp(string, "") == 0){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+
+        }
+        if(strcmp(string1, "") == 0){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+
+        }
+        for(int i = 0; i < 200; i++){
+
+            if((strcmp(string, contas[i].agenc) == 0) && (strcmp(string1, contas[i].ncont) == 0)){
+
+                posi[cont] = i;
+                cont++;
+
+            }
+        }
+
+        if(cont<1){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+        }
+
+        else if(cont<2){
+            printf("Foi encontrado %d resultado:\n", cont);
+            printf("Usuário %d =================\n", contas[posi[0]].clt);
+            printf("Nome      -  %s\n", clientes[contas[posi[0]].clt].nome);
+            printf("Código    -  %s\n", clientes[contas[posi[0]].clt].codigo);
+            printf("CPF/CNPJ  -  %s\n", clientes[contas[posi[0]].clt].cpf);
+            printf("Telefone  -  %s\n", clientes[contas[posi[0]].clt].telefone);
+            printf("Endereço  -  %s\n\n", clientes[contas[posi[0]].clt].endereco);
+            printf("Agência   -  %s\n", contas[posi[0]].agenc);
+            printf("Conta N   -  %s\n", contas[posi[0]].ncont);
+            printf("Saldo     -  %.2f\n\n", contas[posi[0]].saldo);
+        }
+
+        int conta = 0;
+        int posis[10];
+        char string2[100];
+        char string3[100];
+        printf("============ Destino\n");
+        printf("Insira a Agência :\n");
+        fgets((string2), 99, stdin);
+        string2[strcspn(string2, "\n")] = '\0';
+        printf("Insira o número da conta:\n");
+        fgets((string3), 99, stdin);
+        string3[strcspn(string3, "\n")] = '\0';
+        if(strcmp(string2, "") == 0){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+
+        }
+        if(strcmp(string3, "") == 0){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+
+        }
+        for(int i = 0; i < 200; i++){
+
+            if((strcmp(string2, contas[i].agenc) == 0) && (strcmp(string3, contas[i].ncont) == 0)){
+
+                posis[conta] = i;
+                conta++;
+
+            }
+        }
+
+        if(conta<1){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+        }
+
+        else if(conta<2){
+            printf("Foi encontrado %d resultado:\n", conta);
+            printf("Usuário %d =================\n", contas[posis[0]].clt);
+            printf("Nome      -  %s\n", clientes[contas[posis[0]].clt].nome);
+            printf("Código    -  %s\n", clientes[contas[posis[0]].clt].codigo);
+            printf("CPF/CNPJ  -  %s\n", clientes[contas[posis[0]].clt].cpf);
+            printf("Telefone  -  %s\n", clientes[contas[posis[0]].clt].telefone);
+            printf("Endereço  -  %s\n\n", clientes[contas[posis[0]].clt].endereco);
+            printf("Agência   -  %s\n", contas[posis[0]].agenc);
+            printf("Conta N   -  %s\n", contas[posis[0]].ncont);
+            printf("Saldo     -  %.2f\n\n", contas[posis[0]].saldo);
+        }
+
+
+
+        printf("Informe o valor que deseja Depositar:\n");
+        float valors = 0;
+        scanf(" %f", &valors);
+        getchar();
+        if(valors > contas[posi[0]].saldo){
+
+            printf("O Valor informado é maior que o saldo da conta Origem\n");
+            return 0;
+
+        }
+        else if(valors <= 0){
+
+            printf("O Valor informado é inválido!\n");
+            return 0;
+
+        }
+        else{
+            contas[posis[0]].saldo = contas[posis[0]].saldo + valors;
+            contas[posi[0]].saldo = contas[posi[0]].saldo - valors;
+            printf("Novo Saldo Origem- %.2f\n", contas[posi[0]].saldo);
+            struct tm *data;
+            time_t sec;
+            time(&sec);
+            data = localtime(&sec);
+
+            oper[controlf].tipo = 0;
+            oper[controlf].valor = valors;
+            oper[controlf].dia = data->tm_yday;
+            oper[controlf].refconta = contas[posi[0]].clt;
+            sprintf(oper[controlf].desc, "Transferência para conta: {%s}-{%s}", contas[posis[0]].agenc, contas[posis[0]].ncont);
+            transf = fopen("transf.txt", "a+");
+            fprintf(transf, "%d\n", oper[controlf].tipo);
+            fprintf(transf, "%f\n", oper[controlf].valor);
+            fprintf(transf, "%d\n", oper[controlf].dia);
+            fprintf(transf, "%d\n", oper[controlf].refconta);
+            fprintf(transf, "%s\n", oper[controlf].desc);
+            atran();
+
+            oper[controlf].tipo = 1;
+            oper[controlf].valor = valors;
+            oper[controlf].dia = data->tm_yday;
+            oper[controlf].refconta = contas[posis[0]].clt;
+            sprintf(oper[controlf].desc, "Transferência da conta: {%s}-{%s}", contas[posi[0]].agenc, contas[posi[0]].ncont);
+            transf = fopen("transf.txt", "a+");
+            fprintf(transf, "%d\n", oper[controlf].tipo);
+            fprintf(transf, "%f\n", oper[controlf].valor);
+            fprintf(transf, "%d\n", oper[controlf].dia);
+            fprintf(transf, "%d\n", oper[controlf].refconta);
+            fprintf(transf, "%s\n", oper[controlf].desc);
+            atran();
+
+            fcont = fopen("Conta.txt", "w+");
+            for(int i = 0; i < controlc; i++){
+                fprintf(fcont, "%s\n", contas[i].agenc);
+                fprintf(fcont, "%s\n", contas[i].ncont);
+                fprintf(fcont, "%d\n", contas[i].clt);
+                fprintf(fcont, "%f\n", contas[i].saldo);
+            }
+            return 0;
+
+        }
+
+    }
+    return 0;
+}
+
+int montartrans(){
+    transf = fopen("transf.txt", "a+");
+    char string[200];
+    int cont = 0;
+    int i = 0;
+
+    while(fgets(string, 199, transf) != NULL){
+               
+        if(cont == 0){
+            string[strcspn(string, "\n")] = '\0';
+            oper[i].tipo = atoi(string);                                    
+    
+        }
+        if(cont == 1){
+            string[strcspn(string, "\n")] = '\0';
+            oper[i].valor = atof(string); 
+
+        }
+        if(cont == 2){
+            string[strcspn(string, "\n")] = '\0';
+            oper[i].dia = atoi(string); 
+
+        }
+        if(cont == 3){
+            string[strcspn(string, "\n")] = '\0';
+            oper[i].refconta = atoi(string); 
+
+        }
+        if(cont == 4){
+            string[strcspn(string, "\n")] = '\0';
+            strcpy(oper[i].desc, string);  
+            cont = -1;
+            i++;
+
+        }
+        cont++;
+    
+
+    }
+    return 0;
+    
+}
+
+int extrato(){
+    system("cls||clear");
+    int bo = 1;
+    while(bo==1){
+        int cont = 0;
+        int posi[10];
+        char string[100];
+        char string1[100];
+        printf("============ Exibir Extrato ============\n");
+        printf("Insira a Agência:\n");
+        fgets((string), 99, stdin);
+        string[strcspn(string, "\n")] = '\0';
+        printf("Insira o número da conta:\n");
+        fgets((string1), 99, stdin);
+        string1[strcspn(string1, "\n")] = '\0';
+        if(strcmp(string, "") == 0){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+
+        }
+        if(strcmp(string1, "") == 0){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+
+        }
+        for(int i = 0; i < 200; i++){
+
+            if((strcmp(string, contas[i].agenc) == 0) && (strcmp(string1, contas[i].ncont) == 0)){
+
+                posi[cont] = i;
+                cont++;
+
+            }
+        }
+
+        if(cont<1){
+            printf("Cliente não encontrado\n");
+            printf("Pressione ENTER para continuar. . .\n");
+            getchar();
+            return 0;
+        }
+
+        else if(cont<2){
+            printf("Foi encontrado %d resultado:\n", cont);
+            printf("Usuário %d =================\n", contas[posi[0]].clt);
+            printf("Nome      -  %s\n", clientes[contas[posi[0]].clt].nome);
+            printf("Código    -  %s\n", clientes[contas[posi[0]].clt].codigo);
+            printf("CPF/CNPJ  -  %s\n", clientes[contas[posi[0]].clt].cpf);
+            printf("Telefone  -  %s\n", clientes[contas[posi[0]].clt].telefone);
+            printf("Endereço  -  %s\n\n", clientes[contas[posi[0]].clt].endereco);
+            printf("Agência   -  %s\n", contas[posi[0]].agenc);
+            printf("Conta N   -  %s\n", contas[posi[0]].ncont);
+            printf("Saldo     -  %.2f\n\n", contas[posi[0]].saldo);
+        }
+
+        int dias = 0;
+
+        printf("informe quantos dias o extrato deve conter:\n");
+        scanf(" %d", &dias);
+        getchar();
+        struct tm *data;
+        time_t sec;
+        time(&sec);
+        data = localtime(&sec);
+        int diatual = data->tm_yday;
+        printf("============ Extrato ============\n");
+
+        for(int i = 0; i < controlf; i++){
+
+            if(oper[i].refconta == posi[0] && oper[i].dia > diatual - dias){
+
+                if(oper[i].tipo == 0){
+                
+                    printf("Tipo  -  Débito\n");
+                }
+                else{
+
+                    printf("Tipo  -  Crédito\n");
+
+                }
+                printf("Valor -  %f\n", oper[i].valor);
+                printf("Dia   -  %d\n", oper[i].dia);
+                printf("Desc  -  %s\n\n", oper[i].desc);
+
+            }
+            
+
+        }
+        return 0;
+
+
+
+    }
+    return 0;
+}
