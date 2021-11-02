@@ -1,3 +1,5 @@
+// Higor de Souza Carvalho - Introdução a computação - Trabalho Prático - Banco
+
 #include "stdio.h"
 #include "locale.h"
 #include "stdlib.h"
